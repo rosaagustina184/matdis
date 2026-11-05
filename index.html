@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pencarian Jalur Terpendek pada Sistem Navigasi Peta dengan Teori Graf</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --success-color: #4ade80;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.8;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #ffffff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        article {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            color: #cbd5e1;
+            text-align: justify;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            margin: 2.2rem 0 1rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.4rem;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            margin: 1.5rem 0 0.8rem;
+        }
+
+        ul, ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+            color: #cbd5e1;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Styling Animasi Anggota Kelompok */
+        .team-section {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .team-card {
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .team-card:nth-child(1) { animation-delay: 0.1s; }
+        .team-card:nth-child(2) { animation-delay: 0.2s; }
+        .team-card:nth-child(3) { animation-delay: 0.3s; }
+        .team-card:nth-child(4) { animation-delay: 0.4s; }
+        .team-card:nth-child(5) { animation-delay: 0.5s; }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--accent-color);
+            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.2);
+        }
+
+        .team-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--accent-color);
+            color: var(--bg-color);
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            font-size: 1.1rem;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            animation: pulseAvatar 2s infinite;
+        }
+
+        .team-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .team-nim {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+
+        /* Styling Animasi Grafik Interaktif */
+        .interactive-graph-box {
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .graph-controls {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.85rem;
+        }
+
+        .btn-action:hover {
+            background: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        svg.graph-svg {
+            width: 100%;
+            max-width: 500px;
+            height: 320px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .edge {
+            stroke: #475569;
+            stroke-width: 3;
+            transition: stroke 0.4s, stroke-width 0.4s;
+        }
+
+        .edge.highlight {
+            stroke: var(--success-color);
+            stroke-width: 5;
+            animation: pulseEdge 1.5s infinite;
+        }
+
+        .node circle {
+            fill: #1e293b;
+            stroke: var(--accent-color);
+            stroke-width: 3;
+            transition: fill 0.3s, stroke 0.3s;
+        }
+
+        .node text {
+            fill: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+        .node.active circle {
+            fill: var(--success-color);
+            stroke: #ffffff;
+        }
+
+        .graph-status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--success-color);
+            font-weight: 600;
+            min-height: 1.5rem;
+        }
+
+        /* Keyframes Animasi */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseAvatar {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        @keyframes pulseEdge {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; filter: drop-shadow(0 0 6px var(--success-color)); }
+            100% { opacity: 0.6; }
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(15, 23, 42, 0.6);
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: #cbd5e1;
+        }
+
+        th {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        pre {
+            background: #0b0f19;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .abstract-box {
+            background: rgba(56, 189, 248, 0.04);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .abstract-box h3 {
+            margin-top: 0;
+            color: var(--accent-color);
+        }
+
+        .visual-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .visual-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .visual-card h3 {
+            font-size: 0.95rem;
+            color: var(--accent-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .visual-scroll-box {
+            width: 100%;
+            height: 220px;
+            overflow: auto;
+            background: #0b0f19;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .visual-scroll-box img {
+            display: block;
+            width: auto;
+            height: 100%;
+            min-width: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            margin: 0 auto;
+        }
+
+        a.external-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            border-bottom: 1px dashed var(--accent-color);
+        }
+
+        a.external-link:hover {
+            color: var(--accent-hover);
+            border-bottom-style: solid;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            article {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .visual-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="tag">KELOMPOK 8</span>
+        <h1>Pencarian Jalur Terpendek pada Sistem Navigasi Peta dengan Teori Graf</h1>
+        <div class="meta">Ditulis untuk Pembelajaran Matematika Diskrit</div>
+    </header>
+
+    <article>
+        <!-- Animasi Kartu Anggota Kelompok 8 -->
+        <div class="team-section">
+            <h3 style="margin-top:0;">Tim Penyusun (Kelompok 8)</h3>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">R</div>
+                    <div class="team-name">Rosa</div>
+                    <div class="team-nim">NIM: 110</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">T</div>
+                    <div class="team-name">Titalitha</div>
+                    <div class="team-nim">NIM: 88</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">I</div>
+                    <div class="team-name">Ikmal</div>
+                    <div class="team-nim">NIM: 97</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">A</div>
+                    <div class="team-name">Ansa</div>
+                    <div class="team-nim">NIM: 116</div>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">F</div>
+                    <div class="team-name">Fauzi</div>
+                    <div class="team-nim">NIM: 118</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="abstract-box">
+            <h3>Abstrak</h3>
+            <p>Sistem navigasi peta digital seperti Google Maps atau Waze setiap hari menjawab satu pertanyaan mendasar: jalan mana yang paling singkat atau paling cepat dari titik asal ke tujuan? Pertanyaan ini dapat dimodelkan secara matematis menggunakan teori graf, yaitu dengan memandang persimpangan sebagai simpul dan ruas jalan sebagai sisi berbobot. Artikel ini membahas konsep dasar graf berbobot, pemodelan peta menjadi graf, algoritma Dijkstra sebagai metode utama pencarian jalur terpendek, serta sebuah studi kasus perjalanan dari kos menuju kampus yang dihitung langkah demi langkah. Hasilnya menunjukkan bahwa algoritma Dijkstra mampu menemukan jalur dengan total jarak minimum secara pasti, dan bahwa pengembangannya menjadi dasar teknologi navigasi modern.</p>
+            <p style="margin-bottom: 0;"><strong>Kata kunci:</strong> teori graf, graf berbobot, jalur terpendek, algoritma Dijkstra, sistem navigasi</p>
+        </div>
+
+        <h2>1. Pendahuluan</h2>
+        
+        <h3>1.1 Latar Belakang</h3>
+        <p>Mobilitas merupakan kebutuhan sehari-hari. Mahasiswa berangkat dari kos ke kampus, kurir mengantar paket ke banyak alamat, dan pengemudi ojek daring mencari rute menuju lokasi penjemputan. Pada setiap kasus tersebut, ada banyak kemungkinan rute, dan memilih rute yang tepat dapat menghemat waktu, bahan bakar, dan biaya.</p>
+        <p>Manusia dapat memilih rute berdasarkan kebiasaan, tetapi pada peta dengan ratusan ribu persimpangan, cara itu tidak lagi memadai. Diperlukan metode sistematis yang menjamin rute yang dipilih benar-benar optimal. Teori graf, salah satu cabang matematika diskrit, menyediakan kerangka tersebut. Penelitian terbaru di Indonesia pun memakainya untuk persoalan serupa, mulai dari navigasi kampus (Wahyudi dkk., 2024) dan rute survei lokasi (Kusumawati dkk., 2025) hingga rute menuju rumah sakit (Gunawan dkk., 2023).</p>
+
+        <h3>1.2 Rumusan Masalah</h3>
+        <ol>
+            <li>Bagaimana peta jalan dimodelkan sebagai graf berbobot?</li>
+            <li>Bagaimana algoritma Dijkstra menemukan jalur terpendek pada graf tersebut?</li>
+            <li>Bagaimana penerapan algoritma pada sebuah studi kasus perjalanan sehari-hari?</li>
+            <li>Bagaimana pengembangan konsep ini pada sistem navigasi modern?</li>
+        </ol>
+
+        <h3>1.3 Tujuan</h3>
+        <p>Artikel ini bertujuan menjelaskan pemodelan peta dengan graf berbobot, menguraikan cara kerja algoritma Dijkstra, dan menunjukkan perhitungan jalur terpendek melalui studi kasus yang dapat ditelusuri langkah demi langkah.</p>
+
+        <h2>2. Landasan Teori</h2>
+
+        <h3>2.1 Graf</h3>
+        <p>Graf G didefinisikan sebagai pasangan himpunan G = (V, E), dengan V adalah himpunan tidak kosong yang anggotanya disebut simpul (vertex) dan E adalah himpunan sisi (edge) yang menghubungkan pasangan simpul. Graf dikatakan tidak berarah jika sisi tidak memiliki arah (jalan dua arah), dan berarah jika setiap sisi memiliki arah tertentu (jalan satu arah).</p>
+
+        <h3>2.2 Graf Berbobot</h3>
+        <p>Graf berbobot adalah graf yang setiap sisinya diberi nilai numerik yang disebut bobot. Pada konteks peta, bobot dapat berupa jarak (kilometer), waktu tempuh (menit), biaya tol, atau kombinasi dari beberapa faktor.</p>
+
+        <h3>2.3 Lintasan dan Panjang Lintasan</h3>
+        <p>Lintasan adalah barisan simpul dan sisi yang menghubungkan satu simpul ke simpul lain tanpa mengulang simpul. Pada graf berbobot, panjang lintasan adalah jumlah bobot semua sisi yang dilalui. Lintasan terpendek antara simpul s dan t adalah lintasan dengan panjang minimum di antara seluruh lintasan yang mungkin dari s ke t.</p>
+
+        <h3>2.4 Masalah Jalur Terpendek</h3>
+        <p>Masalah jalur terpendek dapat dibedakan menjadi beberapa jenis:</p>
+        <ul>
+            <li><strong>Satu sumber, satu tujuan:</strong> mencari jalur terpendek dari satu titik asal ke satu titik tujuan, seperti kebutuhan navigasi umumnya.</li>
+            <li><strong>Satu sumber, semua tujuan:</strong> mencari jalur terpendek dari satu titik asal ke seluruh simpul lain. Algoritma Dijkstra menyelesaikan jenis ini.</li>
+            <li><strong>Semua pasangan:</strong> mencari jalur terpendek antara setiap pasang simpul, misalnya dengan algoritma Floyd-Warshall. Perbandingannya dengan Dijkstra dibahas oleh Inayah dkk. (2023).</li>
+        </ul>
+
+        <h2>3. Pemodelan Peta sebagai Graf</h2>
+        <p>Langkah pertama dalam menyelesaikan masalah navigasi adalah mengubah peta menjadi graf. Aturan pemodelannya adalah sebagai berikut.</p>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Elemen Peta</th>
+                        <th>Elemen Graf</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Persimpangan, titik awal, titik tujuan</td><td>Simpul (vertex)</td></tr>
+                    <tr><td>Ruas jalan yang menghubungkan dua titik</td><td>Sisi (edge)</td></tr>
+                    <tr><td>Jarak atau waktu tempuh ruas jalan</td><td>Bobot sisi</td></tr>
+                    <tr><td>Jalan satu arah</td><td>Sisi berarah</td></tr>
+                    <tr><td>Jalan dua arah</td><td>Sisi tidak berarah</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p>Sebagai contoh, jika jalan antara Persimpangan A dan Persimpangan B sepanjang 4 km, maka graf memiliki sisi A–B dengan bobot 4. Seluruh jaringan jalan pada suatu wilayah kemudian menjadi kumpulan simpul dan sisi yang saling terhubung.</p>
+
+        <div class="visual-container">
+            <div class="visual-card">
+                <h3>Ilustrasi Vertex & Edge Graph</h3>
+                <div class="visual-scroll-box">
+                    <img src="images/ilustrasi-graph.jpeg" alt="Ilustrasi Graph">
+                </div>
+            </div>
+            <div class="visual-card">
+                <h3>Simulasi Rute Peta (Shortest Path)</h3>
+                <div class="visual-scroll-box">
+                    <img src="images/rute-peta.jpeg" alt="Simulasi Rute Terdekat di Peta">
+                </div>
+            </div>
+        </div>
+
+        <!-- Animasi Visualisasi Teori Graf Interaktif (Dijkstra) -->
+        <div class="interactive-graph-box">
+            <h3 style="margin-top:0;">Simulasi Animasi Jalur Terpendek (Algoritma Dijkstra)</h3>
+            <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:1rem; text-align:center;">Klik tombol di bawah untuk melihat animasi pemprosesan simpul & rute dari Kos (A) ke Kampus (F).</p>
+            
+            <div class="graph-controls">
+                <button class="btn-action" onclick="runSimulation()">Mulai Simulasi Rute</button>
+                <button class="btn-action" style="background:#334155; color:#f8fafc;" onclick="resetSimulation()">Reset</button>
+            </div>
+            
+            <svg class="graph-svg" viewBox="0 0 450 280">
+                <!-- Sisi / Edge dengan Bobot -->
+                <line id="e-AB" class="edge" x1="60" y1="140" x2="180" y2="60" />
+                <text x="110" y="90" fill="#94a3b8" font-size="12">4km</text>
+
+                <line id="e-AC" class="edge" x1="60" y1="140" x2="180" y2="140" />
+                <text x="120" y="130" fill="#94a3b8" font-size="12">2km</text>
+
+                <line id="e-BC" class="edge" x1="180" y1="60" x2="180" y2="140" />
+                <text x="190" y="100" fill="#94a3b8" font-size="12">1km</text>
+
+                <line id="e-BD" class="edge" x1="180" y1="60" x2="300" y2="80" />
+                <text x="235" y="60" fill="#94a3b8" font-size="12">5km</text>
+
+                <line id="e-CD" class="edge" x1="180" y1="140" x2="300" y2="80" />
+                <text x="230" y="125" fill="#94a3b8" font-size="12">8km</text>
+
+                <line id="e-CE" class="edge" x1="180" y1="140" x2="300" y2="210" />
+                <text x="220" y="185" fill="#94a3b8" font-size="12">10km</text>
+
+                <line id="e-DE" class="edge" x1="300" y1="80" x2="300" y2="210" />
+                <text x="310" y="145" fill="#94a3b8" font-size="12">2km</text>
+
+                <line id="e-DF" class="edge" x1="300" y1="80" x2="390" y2="140" />
+                <text x="355" y="100" fill="#94a3b8" font-size="12">6km</text>
+
+                <line id="e-EF" class="edge" x1="300" y1="210" x2="390" y2="140" />
+                <text x="335" y="190" fill="#94a3b8" font-size="12">3km</text>
+
+                <!-- Simpul / Node -->
+                <g id="node-A" class="node" transform="translate(60, 140)">
+                    <circle r="18"/>
+                    <text>A</text>
+                </g>
+                <g id="node-B" class="node" transform="translate(180, 60)">
+                    <circle r="18"/>
+                    <text>B</text>
+                </g>
+                <g id="node-C" class="node" transform="translate(180, 140)">
+                    <circle r="18"/>
+                    <text>C</text>
+                </g>
+                <g id="node-D" class="node" transform="translate(300, 80)">
+                    <circle r="18"/>
+                    <text>D</text>
+                </g>
+                <g id="node-E" class="node" transform="translate(300, 210)">
+                    <circle r="18"/>
+                    <text>E</text>
+                </g>
+                <g id="node-F" class="node" transform="translate(390, 140)">
+                    <circle r="18"/>
+                    <text>F</text>
+                </g>
+            </svg>
+            <div id="graphStatus" class="graph-status">Tekan 'Mulai Simulasi Rute' untuk menjalankan penelusuran.</div>
+        </div>
+
+        <h2>4. Algoritma Dijkstra</h2>
+
+        <h3>4.1 Gagasan Dasar</h3>
+        <p>Algoritma Dijkstra, dikemukakan oleh Edsger W. Dijkstra pada tahun 1959, bekerja dengan prinsip serakah (greedy). Dari simpul asal, algoritma selalu memilih simpul yang belum diproses dengan jarak sementara terkecil, lalu menggunakannya untuk memperbarui jarak ke simpul-simpul tetangganya. Syarat utama algoritma ini adalah seluruh bobot sisi tidak negatif, yang selalu terpenuhi pada jarak dan waktu tempuh.</p>
+
+        <h3>4.2 Langkah-Langkah</h3>
+        <ol>
+            <li>Beri setiap simpul nilai jarak sementara. Simpul asal bernilai 0, simpul lain bernilai tak hingga (∞).</li>
+            <li>Tandai semua simpul sebagai belum dikunjungi.</li>
+            <li>Pilih simpul belum dikunjungi dengan jarak sementara terkecil, sebut simpul u, lalu tandai sebagai dikunjungi. Jarak u kini bersifat final.</li>
+            <li>Untuk setiap tetangga v dari u yang belum dikunjungi, hitung jarak baru: jarak(u) + bobot(u, v). Jika lebih kecil dari jarak sementara v, perbarui jarak v dan catat u sebagai simpul pendahulunya.</li>
+            <li>Ulangi langkah 3 dan 4 sampai simpul tujuan dikunjungi atau seluruh simpul telah diproses.</li>
+            <li>Telusuri simpul pendahulu dari tujuan mundur ke asal untuk memperoleh jalur lengkap.</li>
+        </ol>
+
+        <h3>4.3 Pseudocode</h3>
+        <pre>prosedur Dijkstra(G, asal)
+    untuk setiap simpul v di G:
+        jarak[v] &lt;- tak hingga
+        pendahulu[v] &lt;- tidak ada
+    jarak[asal] &lt;- 0
+    Q &lt;- himpunan semua simpul
+
+    selama Q tidak kosong:
+        u &lt;- simpul di Q dengan jarak[u] terkecil
+        keluarkan u dari Q
+        untuk setiap tetangga v dari u yang masih di Q:
+            alt &lt;- jarak[u] + bobot(u, v)
+            jika alt &lt; jarak[v]:
+                jarak[v] &lt;- alt
+                pendahulu[v] &lt;- u</pre>
+
+        <h3>4.4 Kompleksitas</h3>
+        <p>Dengan implementasi sederhana berbasis larik, kompleksitas waktunya O(V²). Dengan antrean prioritas (min-heap), kompleksitasnya menjadi O((V + E) log V), yang jauh lebih efisien untuk graf jalan yang jarang (jumlah sisi relatif sedikit dibanding jumlah pasangan simpul).</p>
+
+        <h2>5. Studi Kasus: Rute dari Kos ke Kampus</h2>
+
+        <h3>5.1 Deskripsi Kasus</h3>
+        <p>Seorang mahasiswa berangkat dari kos menuju kampus. Terdapat beberapa persimpangan di antara keduanya, dan mahasiswa ingin mengetahui rute dengan jarak total paling pendek. Peta disederhanakan menjadi enam simpul berikut:</p>
+        <ul>
+            <li><strong>A:</strong> Kos (titik asal)</li>
+            <li><strong>B:</strong> Pertigaan Pasar</li>
+            <li><strong>C:</strong> Simpang Masjid</li>
+            <li><strong>D:</strong> Perempatan Kota</li>
+            <li><strong>E:</strong> Jembatan</li>
+            <li><strong>F:</strong> Kampus (titik tujuan)</li>
+        </ul>
+        <p>Seluruh jalan berarah dua, dengan jarak antar persimpangan (dalam kilometer) sebagai berikut:</p>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Ruas Jalan</th><th>Jarak (km)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>A – B</td><td>4</td></tr>
+                    <tr><td>A – C</td><td>2</td></tr>
+                    <tr><td>B – C</td><td>1</td></tr>
+                    <tr><td>B – D</td><td>5</td></tr>
+                    <tr><td>C – D</td><td>8</td></tr>
+                    <tr><td>C – E</td><td>10</td></tr>
+                    <tr><td>D – E</td><td>2</td></tr>
+                    <tr><td>D – F</td><td>6</td></tr>
+                    <tr><td>E – F</td><td>3</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p>Masalahnya: berapa jarak terpendek dari A (kos) ke F (kampus), dan lewat mana?</p>
+
+        <h3>5.2 Penyelesaian dengan Algoritma Dijkstra</h3>
+        <p>Notasi pada tabel: jarak sementara ditulis bersama simpul pendahulunya dalam kurung. Tanda ✔ berarti jarak simpul sudah final.</p>
+        <p>Ringkasan perubahan jarak sementara pada setiap iterasi:</p>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Iterasi</th><th>Simpul Dikunjungi</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Awal</td><td>–</td><td>0</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td><td>∞</td></tr>
+                    <tr><td>1</td><td>A</td><td>0 ✔</td><td>4 (A)</td><td>2 (A)</td><td>∞</td><td>∞</td><td>∞</td></tr>
+                    <tr><td>2</td><td>C</td><td>0 ✔</td><td>3 (C)</td><td>2 ✔</td><td>10 (C)</td><td>12 (C)</td><td>∞</td></tr>
+                    <tr><td>3</td><td>B</td><td>0 ✔</td><td>3 ✔</td><td>2 ✔</td><td>8 (B)</td><td>12 (C)</td><td>∞</td></tr>
+                    <tr><td>4</td><td>D</td><td>0 ✔</td><td>3 ✔</td><td>2 ✔</td><td>8 ✔</td><td>10 (D)</td><td>14 (D)</td></tr>
+                    <tr><td>5</td><td>E</td><td>0 ✔</td><td>3 ✔</td><td>2 ✔</td><td>8 ✔</td><td>10 ✔</td><td>13 (E)</td></tr>
+                    <tr><td>6</td><td>F</td><td>0 ✔</td><td>3 ✔</td><td>2 ✔</td><td>8 ✔</td><td>10 ✔</td><td>13 ✔</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>5.3 Penelusuran Jalur</h3>
+        <p>Dengan menelusuri simpul pendahulu dari tujuan: F berasal dari E, E dari D, D dari B, B dari C, dan C dari A. Jika dibalik, jalur terpendek adalah:</p>
+        <p style="text-align: center; font-weight: bold; color: var(--accent-color);">A → C → B → D → E → F</p>
+        <p>Dengan total jarak 2 + 1 + 5 + 2 + 3 = 13 km.</p>
+
+        <h3>5.4 Pembahasan</h3>
+        <p>Jalur yang tampak langsung dari kos, yaitu A → B (4 km), ternyata bukan bagian dari jalur terbaik. Memutar lebih dulu ke C justru membuat jarak ke B menjadi 3 km, lebih pendek daripada jalan langsung 4 km. Ini menunjukkan bahwa intuisi "ambil jalan paling pendek di setiap persimpangan" belum tentu menghasilkan rute optimal secara keseluruhan, dan algoritma Dijkstra memastikan semua kemungkinan diperhitungankan secara sistematis.</p>
+        <p>Sebagai pembanding, beberapa rute lain adalah sebagai berikut:</p>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>Rute</th><th>Total Jarak (km)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>A → C → B → D → E → F</td><td>13</td></tr>
+                    <tr><td>A → C → B → D → F</td><td>14</td></tr>
+                    <tr><td>A → B → D → E → F</td><td>14</td></tr>
+                    <tr><td>A → B → D → F</td><td>15</td></tr>
+                    <tr><td>A → C → E → F</td><td>15</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>6. Pengembangan pada Sistem Navigasi Modern</h2>
+
+        <h3>6.1 Bobot Berupa Waktu</h3>
+        <p>Sistem navigasi nyata umumnya memakai waktu tempuh sebagai bobot, bukan jarak. Waktu dihitung dari panjang ruas jalan, batas kecepatan, dan data kemacetan terkini. Karena itu rute tercepat belum tentu rute terpendek, dan bobot sisi dapat berubah dari waktu ke waktu. Kusumawati dkk. (2025) mencatat keterbatasan Dijkstra pada kondisi lalu lintas yang berubah seperti ini, dan menyarankan A* atau Floyd-Warshall sebagai pengembangan.</p>
+
+        <h3>6.2 Algoritma A*</h3>
+        <p>Algoritma A* (Hart, Nilsson, dan Raphael, 1968) mengembangkan Dijkstra dengan menambahkan fungsi heuristik, misalnya perkiraan jarak garis lurus ke tujuan. Dengan heuristik ini, pencarian diarahkan ke tujuan sehingga jumlah simpul yang diperiksa lebih sedikit. A* banyak dipakai pada navigasi dan permainan komputer.</p>
+
+        <h3>6.3 Algoritma Bellman-Ford</h3>
+        <p>Bila bobot sisi boleh bernilai negatif, Dijkstra tidak lagi menjamin hasil benar, dan algoritma Bellman-Ford dapat dipakai. Pada peta jalan hal ini jarang terjadi, tetapi relevan untuk model lain seperti jaringan dengan insentif atau potongan biaya.</p>
+
+        <h3>6.4 Teknik Percepatan untuk Skala Besar</h3>
+        <p>Jaringan jalan suatu negara dapat memiliki puluhan juta simpul, sehingga Dijkstra murni dapat terlalu lambat untuk menjawab permintaan secara instan. Karena itu, sistem skala besar memakai teknik pemrosesan awal seperti contraction hierarchies, yang membangun jalan pintas pada graf sebelum pencarian dilakukan. Prinsip dasarnya tetap sama: graf berbobot dan pencarian lintasan minimum.</p>
+
+        <h2>7. Kesimpulan</h2>
+        <ol>
+            <li>Peta jalan dapat dimodelkan sebagai graf berbobot, dengan persimpangan sebagai simpul, ruas jalan sebagai sisi, serta jarak atau waktu sebagai bobot.</li>
+            <li>Algoritma Dijkstra menemukan jalur terpendek dari satu simpul asal dengan selalu memproses simpul berjarak sementara terkecil dan memperbarui jarak tetangganya, selama bobot tidak negatif.</li>
+            <li>Pada studi kasus kos ke kampus, jalur terpendek adalah A → C → B → D → E → F dengan total jarak 13 km, yang tidak dapat ditemukan hanya dengan memilih ruas terpendek di setiap persimpangan.</li>
+            <li>Sistem navigasi modern mengembangkan konsep yang sama dengan bobot berupa waktu, heuristik seperti A*, dan teknik percepatan untuk jaringan berskala besar.</li>
+        </ol>
+
+        <h2>Penerapan di Dunia Akademis</h2>
+        <p>Penerapan teori graph dan analisis algoritma ini menjadi salah satu topik penting yang dipelajari dalam kurikulum bidang informatika dan sistem informasi, seperti yang diajarkan di <a href="https://www.upnyk.ac.id" target="_blank" rel="noopener noreferrer" class="external-link">UPN Veteran Yogyakarta</a>.</p>
+
+        <h2>Daftar Pustaka</h2>
+        <ul style="list-style-type: disc; margin-left: 1.5rem; font-size: 0.9rem;">
+            <li>Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. <em>Introduction to Algorithms</em>. MIT Press.</li>
+            <li>Gunawan, G., Andriani, W., & Munfi, K. H. (2023). Application of the Dijkstra Method in Finding the Shortest Route for Hospitals in Kabupaten Tegal. <em>Jurnal Mandiri IT</em>, 12(2), 97–105. <a href="https://doi.org/10.35335/mandiri.v12i2.238" target="_blank" class="external-link">https://doi.org/10.35335/mandiri.v12i2.238</a></li>
+            <li>Inayah, A. M., Resti, N. C., & Ilmiyah, N. F. (2023). Analisa Perbandingan Algoritma Floyd-Warshall dan Algoritma Dijkstra untuk Penentuan Rute Terdekat. <em>Jurnal Ilmiah Matematika Realistik</em>, 4(2), 146–155.</li>
+            <li>Kusumawati, E. K., Hartanti, D., & Santosa, T. D. (2025). Pemodelan Sistem Pemilihan Tempat POI Terdekat di Wilayah Klaten Kota Menggunakan Metode Dijkstra oleh PT. Telkom Klaten. <em>Jurnal JTIK (Jurnal Teknologi Informasi dan Komunikasi)</em>, 9(1), 225–233. <a href="https://doi.org/10.35870/jtik.v9i1.3063" target="_blank" class="external-link">https://doi.org/10.35870/jtik.v9i1.3063</a></li>
+            <li>Munir, R. <em>Matematika Diskrit</em>. Informatika, Bandung.</li>
+            <li>Rosen, K. H. <em>Discrete Mathematics and Its Applications</em>. McGraw-Hill.</li>
+            <li>Wahyudi, R., Alfin, M., Henrydunan, J. B., & Harliana, P. (2024). Penerapan Algoritma Dijkstra untuk Optimasi Rute Terpendek dari Fakultas Kedokteran Unimed ke Empat Gerbang Kampus Menggunakan Python. <em>JATI (Jurnal Mahasiswa Teknik Informatika)</em>, 8(6), 12073–12078. <a href="https://doi.org/10.36040/jati.v8i6.11783" target="_blank" class="external-link">https://doi.org/10.36040/jati.v8i6.11783</a></li>
+        </ul>
+    </article>
+
+    <footer>
+        &copy; 2026 Artikel Edukasi Teori Graph - Kelompok 8.
+    </footer>
+</div>
+
+<script>
+    function resetSimulation() {
+        document.querySelectorAll('.edge').forEach(e => e.classList.remove('highlight'));
+        document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+        document.getElementById('graphStatus').innerText = "Simulasi direset. Silakan tekan tombol Mulai.";
+    }
+
+    function runSimulation() {
+        resetSimulation();
+        const statusEl = document.getElementById('graphStatus');
+        
+        // Animasi penelusuran Dijkstra: A -> C -> B -> D -> E -> F
+        setTimeout(() => {
+            document.getElementById('node-A').classList.add('active');
+            statusEl.innerText = "Langkah 1: Mulai dari simpul A (Kos, Jarak = 0)";
+        }, 500);
+
+        setTimeout(() => {
+            document.getElementById('e-AC').classList.add('highlight');
+            document.getElementById('node-C').classList.add('active');
+            statusEl.innerText = "Langkah 2: Pilih C terdekat (Jarak total = 2 km)";
+        }, 1500);
+
+        setTimeout(() => {
+            document.getElementById('e-BC').classList.add('highlight');
+            document.getElementById('node-B').classList.add('active');
+            statusEl.innerText = "Langkah 3: Ke simpul B via C (Jarak total = 2 + 1 = 3 km)";
+        }, 2500);
+
+        setTimeout(() => {
+            document.getElementById('e-BD').classList.add('highlight');
+            document.getElementById('node-D').classList.add('active');
+            statusEl.innerText = "Langkah 4: Ke simpul D via B (Jarak total = 3 + 5 = 8 km)";
+        }, 3500);
+
+        setTimeout(() => {
+            document.getElementById('e-DE').classList.add('highlight');
+            document.getElementById('node-E').classList.add('active');
+            statusEl.innerText = "Langkah 5: Ke simpul E via D (Jarak total = 8 + 2 = 10 km)";
+        }, 4500);
+
+        setTimeout(() => {
+            document.getElementById('e-EF').classList.add('highlight');
+            document.getElementById('node-F').classList.add('active');
+            statusEl.innerText = "Selesai! Jalur Terpendek: A → C → B → D → E → F (Total Jarak = 13 km)";
+        }, 5500);
+    }
+</script>
+
+</body>
+</html>
